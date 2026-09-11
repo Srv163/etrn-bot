@@ -1,0 +1,48 @@
+{# Электронная заявка (заказ) — титул грузоотправителя, ON_ZAKZVGO, КНД 1110361.
+   Порядок элементов — по xs:sequence схемы schema/zakaz/ON_ZAKZVGO_1_969_01_05_01_01.xsd:
+   СвГО → СвПрв → ПунктПод → АдрПункт → ОпГруз → ПарТСПрвз; в ОпГруз — МасГруз, РазмерГрМест.
+   Значения приходят отформатированными из zakaz_build.context. #}
+<Файл ИдФайл="{{ file_id }}" ВерсФорм="{{ version_format }}" ВерсПрог="{{ program }}">
+  <Документ КНД="{{ knd }}" Функция="{{ function }}" ДатИнфГО="{{ date_built }}" ВрИнфГО="{{ time_built }}" НаимЭкСубСост="{{ composer }}">
+    <СодИнфГО СодОпер="{{ operation }}" НомЗак="{{ number }}" ДатаЗак="{{ date }}" УкНормПрвз="{{ norms }}" ПрвзПищПрод="{{ food }}">
+      <СвГО>
+        <ИдСв>
+          <СвЮЛУч НаимОрг="{{ shipper.name }}" ИННЮЛ="{{ shipper.inn }}"{% if shipper.kpp %} КПП="{{ shipper.kpp }}"{% endif %}/>
+        </ИдСв>
+        <Конт>
+          <Тлф>{{ shipper.phone }}</Тлф>
+        </Конт>
+      </СвГО>
+      <СвПрв>
+        <ИдСв>
+          <СвЮЛУч НаимОрг="{{ carrier.name }}" ИННЮЛ="{{ carrier.inn }}"{% if carrier.kpp %} КПП="{{ carrier.kpp }}"{% endif %}/>
+        </ИдСв>
+        <Конт>
+          <Тлф>{{ carrier.phone }}</Тлф>
+        </Конт>
+      </СвПрв>
+      <ПунктПод ДатВрПод="{{ pickup.when }}" НалКоорТочВрПод="{{ utc_flag }}">
+        <АдрПунктПод АдрКоммент="{{ pickup.comment }}">
+          <Адрес>
+            <АдрРФ Индекс="{{ pickup.postcode }}" КодРегион="{{ pickup.region }}"{% if pickup.city %} Город="{{ pickup.city }}"{% endif %}{% if pickup.street %} Улица="{{ pickup.street }}"{% endif %}{% if pickup.house %} Дом="{{ pickup.house }}"{% endif %}/>
+          </Адрес>
+        </АдрПунктПод>
+      </ПунктПод>
+      <АдрПункт Опер="Выгрузка"{% if delivery.when %} ДатВрОпер="{{ delivery.when }}" НалКоорТочВрОпер="{{ utc_flag }}"{% endif %}>
+        <АдресПункт АдрКоммент="{{ delivery.comment }}">
+          <Адрес>
+            <АдрРФ Индекс="{{ delivery.postcode }}" КодРегион="{{ delivery.region }}"{% if delivery.city %} Город="{{ delivery.city }}"{% endif %}{% if delivery.street %} Улица="{{ delivery.street }}"{% endif %}{% if delivery.house %} Дом="{{ delivery.house }}"{% endif %}/>
+          </Адрес>
+        </АдресПункт>
+      </АдрПункт>
+      <ОпГруз НаимГруз="{{ cargo.name }}" СостГруз="{{ cargo.state }}" ВидТар="{{ cargo.package_code }}"{% if cargo.extra %} ДрОГруз="{{ cargo.extra }}"{% endif %} КолГрМест="{{ cargo.places }}" МетОпрМасс="{{ cargo.mass_method }}" Объем="{{ cargo.volume }}" РаспрГр="{{ cargo.distributable }}" ДелГр="{{ cargo.divisible }}">
+        <МасГруз МасБрутЗнач="{{ cargo.mass_kg }}"/>
+        <РазмерГрМест ВысЗнач="{{ cargo.height }}" ДлЗнач="{{ cargo.length }}" ШирЗнач="{{ cargo.width }}"/>
+      </ОпГруз>
+      <ПарТСПрвз Тип="{{ vehicle.type }}" Грузопод="{{ vehicle.capacity_t }}" Вместим="{{ vehicle.volume_m3 }}"/>
+    </СодИнфГО>
+    <ПодпИнфГО Должн="{{ signer.position }}" СпосПодтПолном="{{ signer.authority }}">
+      <ФИО Фамилия="{{ signer.surname }}" Имя="{{ signer.name }}"{% if signer.patronymic %} Отчество="{{ signer.patronymic }}"{% endif %}/>
+    </ПодпИнфГО>
+  </Документ>
+</Файл>

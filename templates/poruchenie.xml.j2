@@ -1,0 +1,55 @@
+{# Электронное поручение экспедитору — информация клиента, ON_POREXPKLT, КНД 1110486.
+   Порядок элементов — по xs:sequence схемы schema/eed/ON_POREXPKLT_1_958_05_05_01_01.xsd:
+   СодИнфКлнт: СвГруз → СвКлнт → СвЭксп → ДогТрЭксп;
+   СвГруз: СвГП → СвГО → СвТС → ОпГруз → АдрГруз → АдрПунктНазн;
+   ОпГруз: Марк → СвСтрПроисх → ВесГруз. Кодировка UTF-8 — по описанию формата. #}
+{% macro org(o) -%}
+<ИдСв>
+          <СвЮЛУч НаимОрг="{{ o.name }}" ИННЮЛ="{{ o.inn }}"{% if o.kpp %} КПП="{{ o.kpp }}"{% endif %}/>
+        </ИдСв>
+{%- endmacro %}
+{% macro addr(p) -%}
+<Адрес>
+            <АдрРФ{% if p.postcode %} Индекс="{{ p.postcode }}"{% endif %} КодРегион="{{ p.region }}" НаимРегион="{{ p.region_name }}"{% if p.city %} Город="{{ p.city }}"{% endif %}{% if p.street %} Улица="{{ p.street }}"{% endif %}{% if p.house %} Дом="{{ p.house }}"{% endif %}/>
+          </Адрес>
+{%- endmacro %}
+<Файл ИдФайл="{{ file_id }}" ВерсФорм="{{ version_format }}" ВерсПрог="{{ program }}">
+  <Документ КНД="{{ knd }}" НаимДок="{{ doc_name }}" ДатИнфКлнт="{{ date_built }}" ВрИнфКлнт="{{ time_built }}">
+    <СодИнфКлнт СодОпер="{{ operation }}" НомДок="{{ number }}" ДатаДок="{{ date }}" ДокГруз="{{ docs_present }}">
+      <СвГруз ПрУведСторон="{{ notify }}" ДатОтгрС="{{ ship_from }}" ДатОтгрПо="{{ ship_to }}" ПрзПрвз="{{ container }}">
+        <СвГП>
+        {{ org(consignee) }}
+        </СвГП>
+        <СвГО>
+        {{ org(shipper) }}
+        </СвГО>
+        <СвТС ВидТС="{{ vehicle_kind }}"/>
+        <ОпГруз НаимГруз="{{ cargo.name }}" КолМестГр="{{ cargo.places }}" ПрзОпаснГруз="{{ cargo.dangerous }}" ПрзИзъятВещ="{{ cargo.restricted }}" УказОбъем="{{ cargo.volume_known }}"{% if cargo.volume %} Объем="{{ cargo.volume }}"{% endif %} УчГосСист="{{ cargo.gov_tracked }}" НалУпак="{{ cargo.packed }}" НалКодТовНом="{{ cargo.has_tnved }}">
+          <Марк>{{ cargo.marking }}</Марк>
+          <СвСтрПроисх КодСтр="{{ cargo.origin_code }}" НаимСтран="{{ cargo.origin_name }}"/>
+          <ВесГруз ВесНетто="{{ cargo.net_kg }}" ВесБрутто="{{ cargo.gross_kg }}"/>
+        </ОпГруз>
+        <АдрГруз>
+          <АдрПриемГруз АдрКоммент="{{ pickup.comment }}">
+          {{ addr(pickup) }}
+          </АдрПриемГруз>
+        </АдрГруз>
+        <АдрПунктНазн>
+          <АдрВыдГруз АдрКоммент="{{ delivery.comment }}">
+          {{ addr(delivery) }}
+          </АдрВыдГруз>
+        </АдрПунктНазн>
+      </СвГруз>
+      <СвКлнт>
+        {{ org(client) }}
+      </СвКлнт>
+      <СвЭксп>
+        {{ org(forwarder) }}
+      </СвЭксп>
+      <ДогТрЭксп РеквНаимДок="{{ contract.name }}" РеквНомерДок="{{ contract.number }}" РеквДатаДок="{{ contract.date }}"/>
+    </СодИнфКлнт>
+    <ПодпИнфКлнт{% if signer.position %} Должн="{{ signer.position }}"{% endif %} СпосПодтПолном="{{ signer.authority }}">
+      <ФИО Фамилия="{{ signer.surname }}" Имя="{{ signer.name }}"{% if signer.patronymic %} Отчество="{{ signer.patronymic }}"{% endif %}/>
+    </ПодпИнфКлнт>
+  </Документ>
+</Файл>

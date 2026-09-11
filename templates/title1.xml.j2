@@ -1,0 +1,89 @@
+{# Титул 1 ЭТрН — информация грузоотправителя.
+
+   Разметка строго по schema/ON_TRNACLGROT_1_973_01_05_01_02.xsd:
+   порядок вложенных элементов в XSD задан xs:sequence и нарушать его нельзя,
+   поэтому блоки идут именно в этом порядке
+   (СвГО → СвГП → СвГруз → УказГО → СвПер → СвВодит → СвТС → СвПогруз).
+
+   Значения приходят уже отформатированными из xml_build.xml_context:
+   шаблон ничего не считает и не форматирует — иначе форматы разъедутся
+   между кодом и разметкой.
+
+   Сознательно НЕ выводятся опциональные блоки, которые внутри требуют
+   реквизитов, которых бот пока не собирает:
+     ЦеннГруз  — объявленная стоимость (нужен код валюты по ОКВ);
+     СопрДок   — сопроводительные документы (нужны номер и дата каждого);
+     Прицеп    — у прицепа обязательны тип, марка, грузоподъёмность, вместимость;
+     СвЗак     — сведения о заказчике, когда он не грузоотправитель.
+   Появятся поля в реестре — появятся здесь блоки. Пустой блок хуже отсутствующего:
+   он не пройдёт схему.
+#}
+<Файл ИдФайл="{{ file_id }}" ВерсФорм="{{ version_format }}" ВерсПрог="{{ program }}">
+  <Документ КНД="{{ knd }}" ПоФактХЖ="{{ doc_kind }}" ДатИнфГО="{{ date_built }}" ВрИнфГО="{{ time_built }}">
+    <СодИнфГО СодОпер="{{ operation }}" НомерТрН="{{ doc_number }}" ДатаТрН="{{ doc_date }}" НомЗак="{{ order_number }}" ДатаЗак="{{ order_date }}">
+      <СвГО ГОЭксп="{{ shipper.expeditor }}">
+        <РекИдентГО>
+          <ИдСв>
+            <СвЮЛУч НаимОрг="{{ shipper.name }}" ИННЮЛ="{{ shipper.inn }}"{% if shipper.kpp %} КПП="{{ shipper.kpp }}"{% endif %}/>
+          </ИдСв>
+          <Контакт>
+            <Тлф>{{ shipper.phone }}</Тлф>
+          </Контакт>
+        </РекИдентГО>
+      </СвГО>
+      <СвГП>
+        <РекИдентГП>
+          <ИдСв>
+            <СвЮЛУч НаимОрг="{{ consignee.name }}" ИННЮЛ="{{ consignee.inn }}"{% if consignee.kpp %} КПП="{{ consignee.kpp }}"{% endif %}/>
+          </ИдСв>
+          <Контакт>
+            <Тлф>{{ consignee.phone }}</Тлф>
+          </Контакт>
+        </РекИдентГП>
+        <АдресДостГр АдрКоммент="{{ consignee.address_comment }}">
+          <АдресРФ Индекс="{{ consignee.postcode }}" КодРегион="{{ consignee.region }}"{% if consignee.city %} Город="{{ consignee.city }}"{% endif %}{% if consignee.street %} Улица="{{ consignee.street }}"{% endif %}{% if consignee.house %} Дом="{{ consignee.house }}"{% endif %}/>
+        </АдресДостГр>
+      </СвГП>
+      <СвГруз>
+        <ОпГруз НаимГруз="{{ cargo.name }}" СостГруз="{{ cargo.state }}" СпУпак="{{ cargo.package }}" ВидТар="{{ cargo.package_code }}"{% if cargo.volume %} Объем="{{ cargo.volume }}"{% endif %} КолМестГр="{{ cargo.places }}"{% if cargo.extra %} ДрОГруз="{{ cargo.extra }}"{% endif %}>
+          <Марк>{{ cargo.marking }}</Марк>
+          <ПлМасГруз МасБрутЗнач="{{ cargo.mass_kg }}"/>
+        </ОпГруз>
+      </СвГруз>
+      <УказГО{% if instructions.delivery_datetime %} ДатВрДостГр="{{ instructions.delivery_datetime }}" НалКоорТочВрДост="{{ utc_flag }}"{% endif %} УкНормПрвз="{{ instructions.norms }}">
+        <СвПА ЛицоПА="{{ instructions.redirect_person }}" СпосПерУкПА="{{ instructions.redirect_method }}">
+          <КонтПА>
+            <Тлф>{{ instructions.redirect_phone }}</Тлф>
+          </КонтПА>
+        </СвПА>
+      </УказГО>
+      <СвПер>
+        <ИдСв>
+          <СвЮЛУч НаимОрг="{{ carrier.name }}" ИННЮЛ="{{ carrier.inn }}"{% if carrier.kpp %} КПП="{{ carrier.kpp }}"{% endif %}/>
+        </ИдСв>
+        <Контакт>
+          <Тлф>{{ carrier.phone }}</Тлф>
+        </Контакт>
+      </СвПер>
+      <СвВодит НомВУ="{{ driver.license_number }}" СерВУ="{{ driver.license_series }}">
+        <Тлф>{{ driver.phone }}</Тлф>
+        <ФИО Фамилия="{{ driver.surname }}" Имя="{{ driver.name }}"{% if driver.patronymic %} Отчество="{{ driver.patronymic }}"{% endif %}/>
+      </СвВодит>
+      <СвТС>
+        <ТС{% if vehicle.sts %} НомСТС="{{ vehicle.sts }}"{% endif %} РегНомер="{{ vehicle.plate }}" ТипВлад="{{ vehicle.ownership }}">
+          <ПарТС Тип="{{ vehicle.type }}" Марка="{{ vehicle.brand }}" Грузопод="{{ vehicle.capacity_t }}" Вместим="{{ vehicle.volume_m3 }}"/>
+        </ТС>
+      </СвТС>
+      <СвПогруз ЗаявПогр="{{ loading.planned }}" НалКоорТочВрЗаяв="{{ utc_flag }}" ФДатВрПриб="{{ loading.arrived }}" НалКоорТочВрФПогр="{{ utc_flag }}" ФДатВрУбыт="{{ loading.departed }}" НалКоорТочВрФУбыт="{{ utc_flag }}" МасБрутОтгр="{{ loading.mass_text }}" МетОпрМасс="{{ loading.mass_method }}" КолМестПрием="{{ cargo.places }}">
+        <ФАдресПогр АдрКоммент="{{ loading.address_comment }}">
+          <АдресРФ Индекс="{{ loading.postcode }}" КодРегион="{{ loading.region }}"{% if loading.city %} Город="{{ loading.city }}"{% endif %}{% if loading.street %} Улица="{{ loading.street }}"{% endif %}{% if loading.house %} Дом="{{ loading.house }}"{% endif %}/>
+        </ФАдресПогр>
+        <СвЛицПогрГр СовпГОП="{{ loading.loader_is_shipper }}"/>
+        <ВладИнфр СовпГОВ="{{ loading.infra_is_shipper }}"/>
+      </СвПогруз>
+    </СодИнфГО>
+    <Подписант СтатПодп="{{ signer.status }}"{% if signer.position %} Должн="{{ signer.position }}"{% endif %}>
+      <ФИО Фамилия="{{ signer.surname }}" Имя="{{ signer.name }}"{% if signer.patronymic %} Отчество="{{ signer.patronymic }}"{% endif %}/>
+    </Подписант>
+  </Документ>
+</Файл>
